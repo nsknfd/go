@@ -16,7 +16,7 @@ func ReadTest(file string) (*Test, error) {
 	if err != nil {
 		return nil, err
 	}
-	var data []byte
+	data := make([]byte, 100)
 	n, err := f.Read(data)
 	if err != nil {
 		return nil, err
@@ -47,14 +47,14 @@ func WriteTest(file string, test *Test) error {
 }
 
 func main() {
-	test := &Test{"maoyufeng", 283059}
+	//test := &Test{"maoyufeng", 283059}
 	file := "main.json"
-	err := WriteTest(file, test)
-	if err != nil {
-		fmt.Println("Write Test failed.", err)
-	} else {
-		fmt.Println("Write Test success.", test)
-	}
+	//err := WriteTest(file, test)
+	//if err != nil {
+	//	fmt.Println("Write Test failed.", err)
+	//} else {
+	//	fmt.Println("Write Test success.", test)
+	//}
 	test1, err := ReadTest(file)
 	if err != nil {
 		fmt.Println("Read Test failed.", err)

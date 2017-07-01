@@ -7,8 +7,8 @@ endif
 .PHONY: $(MAKECMDGOALS)
 $(MAKECMDGOALS): $(SRC_FILE)
 ifneq ($(MAKECMDGOALS), clean)
-	@echo "Building ${@F} ..."
-	@go build -o main.exe $(PROJECT)/${@F}
+	@echo "Building $@ ..."
+	@go build -o ${@F}.exe $(PROJECT)/$@
 else
 	@rm -rf *.exe
 endif
