@@ -8,73 +8,58 @@ import (
 
 type CallStackError interface {
 	error
+	Trace() CallStackError
 }
 
 type callStackError struct {
 	message string
+	stack   []uintptr
 }
 
 const (
-	skipStack         int = 2
-	defaultStackLevel int = 5
-	minStackLevel     int = 1
-	maxStackLevel     int = 50
+	skipStack int = 2
+	maxStack  int = 10
 )
 
-var (
-	withStack  bool = false
-	stackLevel int  = defaultStackLevel
-)
-
-func Init(withCallStack bool, callStackLevel int) {
-	withStack = withCallStack
-	if callStackLevel < minStackLevel || callStackLevel > maxStackLevel {
-		stackLevel = defaultStackLevel
-	} else {
-		stackLevel = callStackLevel
-	}
-}
-func formatError(f interface{}, v ...interface{}) string {
+func New(f interface{}, v ...interface{}) CallStackError {
+	err := &callStackError{}
 	var msg string
 	switch f.(type) {
 	case string:
 		msg = f.(string)
-		if len(v) == 0 {
-			return msg
-		}
+	default:
+		msg = fmt.Sprint(f)
+	}
+
+	if len(v) > 0 {
 		if strings.Contains(msg, "%") && !strings.Contains(msg, "%%") {
 			//format string
 		} else {
 			//do not contain format char
 			msg += strings.Repeat(" %v", len(v))
 		}
-	default:
-		msg = fmt.Sprint(f)
-		if len(v) == 0 {
-			return msg
-		}
-		msg += strings.Repeat(" %v", len(v))
+
 	}
-	return fmt.Sprintf(msg, v...)
+	err.message = fmt.Sprintf(msg, v...)
+	return err
 }
 
-func New(f interface{}, v ...interface{}) CallStackError {
-	e := &callStackError{}
-
-	e.message = formatError(f, v...)
-
-	if withStack {
-		stack := make([]uintptr, stackLevel)
-		l := runtime.Callers(skipStack, stack)
-		for i := 0; i < l; i++ {
-			f := runtime.FuncForPC(stack[i])
-			file, line := f.FileLine(stack[i])
-			e.message += fmt.Sprintf("\n\t%s:%d %s", file, line, f.Name())
-		}
-	}
-	return e
+func (e *callStackError) Trace() CallStackError {
+	// 添加堆栈信息时新建一个error
+	err := &callStackError{}
+	err.message = e.message
+	stack := make([]uintptr, maxStack)
+	l := runtime.Callers(skipStack, stack)
+	err.stack = stack[:l]
+	return err
 }
 
 func (e *callStackError) Error() string {
-	return e.message
+	message := e.message
+	for _, pc := range e.stack {
+		f := runtime.FuncForPC(pc)
+		file, line := f.FileLine(pc)
+		message += fmt.Sprintf("\n\t%s:%d %s", file, line, f.Name())
+	}
+	return message
 }
