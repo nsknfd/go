@@ -15,3 +15,6 @@
 
 # idea setting path
 .idea
+
+bin/
+*.log

@@ -27,6 +27,5 @@ func main() {
 
 	id, err := res.LastInsertId()
 	CheckErr(err)
-
 	fmt.Println(id)
 }

@@ -1,14 +1,15 @@
 PROJECT = github.com/nsknfd/go
 
-ifneq ($(MAKECMDGOALS), clean)
-SRC_FILE = $(shell find $(MAKECMDGOALS) -name "*.go")
-endif
+SRC_FILE = $(shell find src -name "*.go")
 
-.PHONY: $(MAKECMDGOALS)
-$(MAKECMDGOALS): $(SRC_FILE)
-ifneq ($(MAKECMDGOALS), clean)
+ALL = $(shell ls src)
+
+all: $(ALL)
+$(ALL): %: bin/%
+
+bin/%: $(SRC_FILE)
 	@echo "Building $@ ..."
-	@go build -o ${@F}.exe $(PROJECT)/$@
-else
-	@rm -rf *.exe
-endif
+	@go build -o $@ $(PROJECT)/src/${@F}
+
+.PHONY: clean
+	@rm -rf bin/
